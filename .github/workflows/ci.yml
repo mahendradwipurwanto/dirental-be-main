@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: rental
+          POSTGRES_PASSWORD: rental
+          POSTGRES_DB: rental
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U rental" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://rental:rental@localhost:5432/rental
+      NODE_ENV: test
+      JWT_SECRET: ci-jwt-secret-0123456789abcdef0123456789abcdef
+      CRON_SECRET: ci
+      WEB_API_KEY: ci
+      REVALIDATE_SECRET: ci
+      WEB_URL: http://localhost:3000
+      ADMIN_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm db:migrate
+      - run: printf 'DATABASE_URL=%s\nNODE_ENV=test\nJWT_SECRET=%s\nCRON_SECRET=ci\nWEB_API_KEY=ci\nREVALIDATE_SECRET=ci\nWEB_URL=http://localhost:3000\nADMIN_URL=http://localhost:3001\n' "$DATABASE_URL" "$JWT_SECRET" > .env
+      - run: pnpm test
+      - run: pnpm check:openapi

@@ -1,0 +1,4 @@
+# pnpm settings (pnpm >= 10 reads these from here, not package.json)
+allowBuilds:
+  esbuild: true
+  '@node-rs/argon2': true

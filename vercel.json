@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["sin1"],
+  "functions": {
+    "src/index.ts": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    { "path": "/v1/internal/cron/expire-bookings", "schedule": "*/5 * * * *" },
+    { "path": "/v1/internal/cron/purge-tokens", "schedule": "15 3 * * *" }
+  ]
+}
